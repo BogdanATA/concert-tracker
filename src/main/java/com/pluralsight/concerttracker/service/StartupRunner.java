@@ -31,6 +31,11 @@ public class StartupRunner implements CommandLineRunner {
         while (running) {
             System.out.println("\n=== Concert Tracker ===");
             System.out.println("1) Concert Menu");
+            System.out.println("2) Search Concerts");
+            System.out.println("3) Artists");
+            System.out.println("4) Venues");
+            System.out.println("5) Promoters");
+            System.out.println("6) Reports");
             System.out.println("0) Quit");
             System.out.print("Choice: ");
             int choice = Integer.parseInt(scanner.nextLine());
