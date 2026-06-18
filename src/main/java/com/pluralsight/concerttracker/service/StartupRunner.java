@@ -30,13 +30,18 @@ public class StartupRunner implements CommandLineRunner {
         boolean running = true;
         while (running) {
             System.out.println("\n=== Concert Tracker ===");
-            System.out.println("1) List All Concerts");
+            System.out.println("1) Concert Menu");
             System.out.println("0) Quit");
             System.out.print("Choice: ");
             int choice = Integer.parseInt(scanner.nextLine());
 
             switch (choice) {
                 case 1 -> concertsMenu();
+                case 2 -> searchConcertsMenu();
+                case 3 -> artistsMenu();
+                case 4 -> venuesMenu();
+                case 5 -> promotersMenu();
+                //case 6 -> reportsMenu();
                 case 0 -> {
                     System.out.println("Goodbye!");
                     running = false;
@@ -62,6 +67,11 @@ public class StartupRunner implements CommandLineRunner {
 
             switch (choice) {
                 case 1 -> listAllConcerts();
+                case 2 -> viewConcertById();
+                case 3 -> addConcert();
+                case 4 -> updateTicketPrice();
+                case 5 -> updateTicketsSold();
+                case 6 -> deleteConcert();
                 case 0 -> running = false;
                 default -> System.out.println("Invalid choice, try again.");
             }
@@ -426,6 +436,119 @@ public class StartupRunner implements CommandLineRunner {
         }
     }
 
+    private void searchConcertsMenu() {
+        boolean running = true;
+        while (running) {
+            System.out.println("\n=== Search Concerts ===");
+            System.out.println("1) By year");
+            System.out.println("2) By artist");
+            System.out.println("3) By venue");
+            System.out.println("4) By city");
+            System.out.println("5) By maximum price");
+            System.out.println("6) By price range");
+            System.out.println("7) By max price + earliest year");
+            System.out.println("0) Back");
+            System.out.print("Choice: ");
+            int choice = Integer.parseInt(scanner.nextLine());
+
+            switch (choice) {
+                case 1 -> {
+                    System.out.print("Enter year: ");
+                    int year = Integer.parseInt(scanner.nextLine());
+                    List<Concert> results = service.findConcertsByYear(year);
+                    if (results.isEmpty()) {
+                        System.out.println("No concerts found.");
+                    } else {
+                        for (Concert c : results) {
+                            printConcert(c);
+                        }
+                    }
+                }
+                case 2 -> {
+                    System.out.print("Artist name contains: ");
+                    String name = scanner.nextLine();
+                    List<Concert> results = service.findConcertsByArtistName(name);
+                    if (results.isEmpty()) {
+                        System.out.println("No concerts found.");
+                    } else {
+                        for (Concert c : results) {
+                            printConcert(c);
+                        }
+                    }
+                }
+                case 3 -> {
+                    System.out.print("Venue name contains: ");
+                    String name = scanner.nextLine();
+                    List<Concert> results = service.findConcertsByVenueName(name);
+                    if (results.isEmpty()) {
+                        System.out.println("No concerts found.");
+                    } else {
+                        for (Concert c : results) {
+                            printConcert(c);
+                        }
+                    }
+                }
+                case 4 -> {
+                    System.out.print("Enter city: ");
+                    String city = scanner.nextLine();
+                    List<Concert> results = service.findConcertsByCity(city);
+                    if (results.isEmpty()) {
+                        System.out.println("No concerts found.");
+                    } else {
+                        for (Concert c : results) {
+                            printConcert(c);
+                        }
+                    }
+                }
+                case 5 -> {
+                    System.out.print("Enter max price: ");
+                    double maxPrice = Double.parseDouble(scanner.nextLine());
+                    List<Concert> results = service.findConcertsByMaxPrice(maxPrice);
+                    if (results.isEmpty()) {
+                        System.out.println("No concerts found.");
+                    } else {
+                        for (Concert c : results) {
+                            printConcert(c);
+                        }
+                    }
+                }
+                case 6 -> {
+                    System.out.print("Enter min price: ");
+                    double minPrice = Double.parseDouble(scanner.nextLine());
+                    System.out.print("Enter max price: ");
+                    double maxPrice = Double.parseDouble(scanner.nextLine());
+                    List<Concert> results = service.findConcertsByPriceRange(minPrice, maxPrice);
+                    if (results.isEmpty()) {
+                        System.out.println("No concerts found.");
+                    } else {
+                        for (Concert c : results) {
+                            printConcert(c);
+                        }
+                    }
+                }
+                case 7 -> {
+                    System.out.print("Enter max price: ");
+                    double maxPrice = Double.parseDouble(scanner.nextLine());
+                    System.out.print("Enter earliest year: ");
+                    int minYear = Integer.parseInt(scanner.nextLine());
+                    List<Concert> results = service.findConcertsByMaxPriceAndMinYear(maxPrice, minYear);
+                    if (results.isEmpty()) {
+                        System.out.println("No concerts found.");
+                    } else {
+                        for (Concert c : results) {
+                            printConcert(c);
+                        }
+                    }
+                }
+                case 0 -> running = false;
+                default -> System.out.println("Invalid choice, try again.");
+            }
+        }
+    }
+
+    private void printConcert(Concert c) {
+        System.out.println(c.getId() + " | " + c.getArtist().getName() + " | " + c.getVenue().getName() + " | " + c.getVenue().getCity() + " | " + c.getConcertYear() + " | $" + c.getTicketPrice());
+    }
 
     private void seedData() {
         if (!service.getAllConcerts().isEmpty()) return;
