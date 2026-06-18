@@ -78,6 +78,353 @@ public class StartupRunner implements CommandLineRunner {
         }
     }
 
+    private void viewConcertById() {
+        System.out.print("Enter concert id: ");
+        long id = Long.parseLong(scanner.nextLine());
+        Concert c = service.getConcertById(id);
+        if (c == null) {
+            System.out.println("No concert with that id.");
+        } else {
+            System.out.println(c.getId() + " | " + c.getArtist().getName() + " | " + c.getVenue().getName() + " | " +
+                    c.getPromoter().getName() + " | " + c.getConcertYear() + " | $" + c.getTicketPrice() + " | Sold: " + c.getTicketsSold());
+        }
+    }
+
+    private void addConcert() {
+        System.out.println("\nAvailable Artists:");
+        for (Artist a : service.getAllArtists()) {
+            System.out.println(a.getId() + ") " + a.getName());
+        }
+        System.out.print("Choose artist id: ");
+        long artistId = Long.parseLong(scanner.nextLine());
+
+        System.out.println("\nAvailable Venues:");
+        for (Venue v : service.getAllVenues()) {
+            System.out.println(v.getId() + ") " + v.getName() + " - " + v.getCity() + " (capacity: " + v.getCapacity() + ")");
+        }
+        System.out.print("Choose venue id: ");
+        long venueId = Long.parseLong(scanner.nextLine());
+
+        System.out.println("\nAvailable Promoters:");
+        for (Promoter p : service.getAllPromoters()) {
+            System.out.println(p.getId() + ") " + p.getName());
+        }
+        System.out.print("Choose promoter id: ");
+        long promoterId = Long.parseLong(scanner.nextLine());
+
+        System.out.print("Enter year: ");
+        int year = Integer.parseInt(scanner.nextLine());
+        System.out.print("Enter ticket price: ");
+        double price = Double.parseDouble(scanner.nextLine());
+        System.out.print("Enter tickets sold: ");
+        int ticketsSold = Integer.parseInt(scanner.nextLine());
+
+        Artist artist = service.getAllArtists().stream()
+                .filter(a -> a.getId() == artistId)
+                .findFirst()
+                .orElse(null);
+        Venue venue = service.getAllVenues().stream()
+                .filter(v -> v.getId() == venueId)
+                .findFirst()
+                .orElse(null);
+        Promoter promoter = service.getAllPromoters().stream()
+                .filter(p -> p.getId() == promoterId)
+                .findFirst()
+                .orElse(null);
+
+        if (artist == null || venue == null || promoter == null) {
+            System.out.println("Invalid artist, venue, or promoter id.");
+            return;
+        }
+        if (price < 0 || ticketsSold < 0) {
+            System.out.println("Price and tickets sold cannot be negative.");
+            return;
+        }
+        if (ticketsSold > venue.getCapacity()) {
+            System.out.println("Tickets sold cannot exceed venue capacity of " + venue.getCapacity() + ".");
+            return;
+        }
+
+        Concert c = service.addConcert(new Concert(year, price, ticketsSold, artist, venue, promoter));
+        System.out.println("Concert added with id " + c.getId() + ".");
+    }
+
+    private void updateTicketPrice() {
+        System.out.print("Enter concert id: ");
+        long id = Long.parseLong(scanner.nextLine());
+        System.out.print("Enter new ticket price: ");
+        double price = Double.parseDouble(scanner.nextLine());
+        Concert c = service.updateTicketPrice(id, price);
+        if (c == null) {
+            System.out.println("Could not update. Check id exists and price is not negative.");
+        } else {
+            System.out.println("Ticket price updated.");
+        }
+    }
+
+    private void updateTicketsSold() {
+        System.out.print("Enter concert id: ");
+        long id = Long.parseLong(scanner.nextLine());
+        System.out.print("Enter new tickets sold: ");
+        int ticketsSold = Integer.parseInt(scanner.nextLine());
+        Concert c = service.updateTicketsSold(id, ticketsSold);
+        if (c == null) {
+            System.out.println("Could not update. Check id exists, count is not negative, and does not exceed venue capacity.");
+        } else {
+            System.out.println("Tickets sold updated.");
+        }
+    }
+
+    private void deleteConcert() {
+        System.out.print("Enter concert id to delete: ");
+        long id = Long.parseLong(scanner.nextLine());
+        Concert c = service.getConcertById(id);
+        if (c == null) {
+            System.out.println("No concert with that id.");
+        } else {
+            service.deleteConcert(id);
+            System.out.println("Concert deleted.");
+        }
+    }
+
+    private void venuesMenu() {
+        boolean running = true;
+        while (running) {
+            System.out.println("\n=== Venues ===");
+            System.out.println("1) List all venues");
+            System.out.println("2) Add a venue");
+            System.out.println("3) Find by city");
+            System.out.println("4) Find by name");
+            System.out.println("5) Find by minimum capacity");
+            System.out.println("6) Update capacity");
+            System.out.println("7) Delete a venue");
+            System.out.println("0) Back");
+            System.out.print("Choice: ");
+            int choice = Integer.parseInt(scanner.nextLine());
+
+            switch (choice) {
+                case 1 -> {
+                    for (Venue v : service.getAllVenues()) {
+                        System.out.println(v.getId() + " | " + v.getName() + " | " + v.getCity() + " | capacity: " + v.getCapacity());
+                    }
+                }
+                case 2 -> {
+                    System.out.print("Name: ");
+                    String name = scanner.nextLine();
+                    System.out.print("City: ");
+                    String city = scanner.nextLine();
+                    System.out.print("Capacity: ");
+                    int cap = Integer.parseInt(scanner.nextLine());
+                    service.addVenue(new Venue(name, city, cap));
+                    System.out.println("Venue added.");
+                }
+                case 3 -> {
+                    System.out.print("City: ");
+                    String city = scanner.nextLine();
+                    List<Venue> results = service.findVenuesByCity(city);
+                    if (results.isEmpty()) {
+                        System.out.println("No venues found.");
+                    } else {
+                        for (Venue v : results) {
+                            System.out.println(v.getId() + " | " + v.getName() + " | " + v.getCity());
+                        }
+                    }
+                }
+                case 4 -> {
+                    System.out.print("Name contains: ");
+                    String name = scanner.nextLine();
+                    List<Venue> results = service.findVenuesByName(name);
+                    if (results.isEmpty()) {
+                        System.out.println("No venues found.");
+                    } else {
+                        for (Venue v : results) {
+                            System.out.println(v.getId() + " | " + v.getName() + " | " + v.getCity());
+                        }
+                    }
+                }
+                case 5 -> {
+                    System.out.print("Min capacity: ");
+                    int cap = Integer.parseInt(scanner.nextLine());
+                    List<Venue> results = service.findVenuesByMinCapacity(cap);
+                    if (results.isEmpty()) {
+                        System.out.println("No venues found.");
+                    } else {
+                        for (Venue v : results) {
+                            System.out.println(v.getId() + " | " + v.getName() + " | capacity: " + v.getCapacity());
+                        }
+                    }
+                }
+                case 6 -> {
+                    System.out.print("Venue id: ");
+                    long id = Long.parseLong(scanner.nextLine());
+                    System.out.print("New capacity: ");
+                    int cap = Integer.parseInt(scanner.nextLine());
+                    Venue v = service.updateVenueCapacity(id, cap);
+                    if (v == null) {
+                        System.out.println("Not found or invalid.");
+                    } else {
+                        System.out.println("Updated.");
+                    }
+                }
+                case 7 -> {
+                    System.out.print("Venue id: ");
+                    long id = Long.parseLong(scanner.nextLine());
+                    Venue v = service.getAllVenues().stream()
+                            .filter(x -> x.getId() == id)
+                            .findFirst()
+                            .orElse(null);
+                    if (v == null) {
+                        System.out.println("Not found.");
+                    } else {
+                        service.deleteVenue(id);
+                        System.out.println("Deleted.");
+                    }
+                }
+                case 0 -> running = false;
+                default -> System.out.println("Invalid choice, try again.");
+            }
+        }
+    }
+
+    private void artistsMenu() {
+        boolean running = true;
+        while (running) {
+            System.out.println("\n=== Artists ===");
+            System.out.println("1) List all artists");
+            System.out.println("2) Add an artist");
+            System.out.println("3) Find by genre");
+            System.out.println("4) Find by name");
+            System.out.println("5) Update genre");
+            System.out.println("6) Delete an artist");
+            System.out.println("0) Back");
+            System.out.print("Choice: ");
+            int choice = Integer.parseInt(scanner.nextLine());
+
+            switch (choice) {
+                case 1 -> {
+                    for (Artist a : service.getAllArtists()) {
+                        System.out.println(a.getId() + " | " + a.getName() + " | " + a.getGenre());
+                    }
+                }
+                case 2 -> {
+                    System.out.print("Name: ");
+                    String name = scanner.nextLine();
+                    System.out.print("Genre: ");
+                    String genre = scanner.nextLine();
+                    service.addArtist(new Artist(name, genre));
+                    System.out.println("Artist added.");
+                }
+                case 3 -> {
+                    System.out.print("Genre: ");
+                    String genre = scanner.nextLine();
+                    List<Artist> results = service.findArtistsByGenre(genre);
+                    if (results.isEmpty()) {
+                        System.out.println("No artists found.");
+                    } else {
+                        for (Artist a : results) {
+                            System.out.println(a.getId() + " | " + a.getName() + " | " + a.getGenre());
+                        }
+                    }
+                }
+                case 4 -> {
+                    System.out.print("Name contains: ");
+                    String name = scanner.nextLine();
+                    List<Artist> results = service.findArtistsByName(name);
+                    if (results.isEmpty()) {
+                        System.out.println("No artists found.");
+                    } else {
+                        for (Artist a : results) {
+                            System.out.println(a.getId() + " | " + a.getName() + " | " + a.getGenre());
+                        }
+                    }
+                }
+                case 5 -> {
+                    System.out.print("Artist id: ");
+                    long id = Long.parseLong(scanner.nextLine());
+                    System.out.print("New genre: ");
+                    String genre = scanner.nextLine();
+                    Artist a = service.updateArtistGenre(id, genre);
+                    if (a == null) {
+                        System.out.println("Not found.");
+                    } else {
+                        System.out.println("Updated.");
+                    }
+                }
+                case 6 -> {
+                    System.out.print("Artist id: ");
+                    long id = Long.parseLong(scanner.nextLine());
+                    Artist a = service.getAllArtists().stream()
+                            .filter(x -> x.getId() == id)
+                            .findFirst()
+                            .orElse(null);
+                    if (a == null) {
+                        System.out.println("Not found.");
+                    } else {
+                        service.deleteArtist(id);
+                        System.out.println("Deleted.");
+                    }
+                }
+                case 0 -> running = false;
+                default -> System.out.println("Invalid choice, try again.");
+            }
+        }
+    }
+
+    private void promotersMenu() {
+        boolean running = true;
+        while (running) {
+            System.out.println("\n=== Promoters ===");
+            System.out.println("1) List all promoters");
+            System.out.println("2) Add a promoter");
+            System.out.println("3) Find by name");
+            System.out.println("4) Delete a promoter");
+            System.out.println("0) Back");
+            System.out.print("Choice: ");
+            int choice = Integer.parseInt(scanner.nextLine());
+
+            switch (choice) {
+                case 1 -> {
+                    for (Promoter p : service.getAllPromoters()) {
+                        System.out.println(p.getId() + " | " + p.getName());
+                    }
+                }
+                case 2 -> {
+                    System.out.print("Name: ");
+                    String name = scanner.nextLine();
+                    service.addPromoter(new Promoter(name));
+                    System.out.println("Promoter added.");
+                }
+                case 3 -> {
+                    System.out.print("Name contains: ");
+                    String name = scanner.nextLine();
+                    List<Promoter> results = service.findPromotersByName(name);
+                    if (results.isEmpty()) {
+                        System.out.println("No promoters found.");
+                    } else {
+                        for (Promoter p : results) {
+                            System.out.println(p.getId() + " | " + p.getName());
+                        }
+                    }
+                }
+                case 4 -> {
+                    System.out.print("Promoter id: ");
+                    long id = Long.parseLong(scanner.nextLine());
+                    Promoter p = service.getAllPromoters().stream()
+                            .filter(x -> x.getId() == id)
+                            .findFirst()
+                            .orElse(null);
+                    if (p == null) {
+                        System.out.println("Not found.");
+                    } else {
+                        service.deletePromoter(id);
+                        System.out.println("Deleted.");
+                    }
+                }
+                case 0 -> running = false;
+                default -> System.out.println("Invalid choice, try again.");
+            }
+        }
+    }
 
 
     private void seedData() {
