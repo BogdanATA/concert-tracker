@@ -41,7 +41,7 @@ public class StartupRunner implements CommandLineRunner {
                 case 3 -> artistsMenu();
                 case 4 -> venuesMenu();
                 case 5 -> promotersMenu();
-                //case 6 -> reportsMenu();
+                case 6 -> reportsMenu();
                 case 0 -> {
                     System.out.println("Goodbye!");
                     running = false;
@@ -537,6 +537,85 @@ public class StartupRunner implements CommandLineRunner {
                     } else {
                         for (Concert c : results) {
                             printConcert(c);
+                        }
+                    }
+                }
+                case 0 -> running = false;
+                default -> System.out.println("Invalid choice, try again.");
+            }
+        }
+    }
+
+    private void reportsMenu() {
+        boolean running = true;
+        while (running) {
+            System.out.println("\n=== Reports ===");
+            System.out.println("1) Revenue per venue");
+            System.out.println("2) Busiest venue and artist");
+            System.out.println("3) Average ticket price by year");
+            System.out.println("4) Capacity report");
+            System.out.println("0) Back");
+            System.out.print("Choice: ");
+            int choice = Integer.parseInt(scanner.nextLine());
+
+            switch (choice) {
+                case 1 -> {
+                    List<Object[]> results = service.getRevenuePerVenue();
+                    if (results.isEmpty()) {
+                        System.out.println("No data.");
+                    } else {
+                        System.out.println("\n=== Revenue Per Venue ===");
+                        for (Object[] row : results) {
+                            String venueName = (String) row[0];
+                            double revenue = ((Number) row[1]).doubleValue(); // cast to Number to be safe
+                            System.out.println(venueName + " | $" + revenue);
+                        }
+                    }
+                }
+                case 2 -> {
+                    System.out.println("\n=== Busiest Venue and Artist ===");
+                    List<Object[]> venueResults = service.getBusiestVenue();
+                    if (!venueResults.isEmpty()) {
+                        Object[] row = venueResults.get(0);
+                        String venueName = (String) row[0];
+                        long concertCount = ((Number) row[1]).longValue();
+                        System.out.println("Busiest Venue: " + venueName + " | " + concertCount + " concerts");
+                    }
+                    List<Object[]> artistResults = service.getBusiestArtist();
+                    if (!artistResults.isEmpty()) {
+                        Object[] row = artistResults.get(0);
+                        String artistName = (String) row[0];
+                        long concertCount = ((Number) row[1]).longValue();
+                        System.out.println("Busiest Artist: " + artistName + " | " + concertCount + " concerts");
+                    }
+                }
+                case 3 -> {
+                    List<Object[]> results = service.getAvgPricePerYear();
+                    if (results.isEmpty()) {
+                        System.out.println("No data.");
+                    } else {
+                        System.out.println("\n=== Average Ticket Price By Year ===");
+                        for (Object[] row : results) {
+                            int year = ((Number) row[0]).intValue();
+                            double avgPrice = ((Number) row[1]).doubleValue();
+                            System.out.println(year + " | $" + avgPrice);
+                        }
+                    }
+                }
+                case 4 -> {
+                    List<Object[]> results = service.getCapacityReport();
+                    if (results.isEmpty()) {
+                        System.out.println("No data.");
+                    } else {
+                        System.out.println("\n=== Capacity Report ===");
+                        for (Object[] row : results) {
+                            String artistName = (String) row[0];
+                            String venueName = (String) row[1];
+                            int sold = ((Number) row[2]).intValue();
+                            int capacity = ((Number) row[3]).intValue();
+                            double pct = (sold * 100.0) / capacity;
+                            String soldOut = pct >= 100 ? " | SOLD OUT" : "";
+                            System.out.println(artistName + " | " + venueName + " | " + sold + "/" + capacity + " | " + pct + "%" + soldOut);
                         }
                     }
                 }

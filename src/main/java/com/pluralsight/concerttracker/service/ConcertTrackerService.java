@@ -170,4 +170,23 @@ public class ConcertTrackerService {
         return concertRepository.findByMaxPriceAndMinYear(maxPrice, minYear);
     }
 
+    public List<Object[]> getRevenuePerVenue() {
+        return concertRepository.revenuePerVenue();
+    }
+
+    public List<Object[]> getBusiestVenue() {
+        return concertRepository.concertCountPerVenue();
+    }
+
+    public List<Object[]> getBusiestArtist() {
+        return concertRepository.concertCountPerArtist();
+    }
+
+    public List<Object[]> getAvgPricePerYear() {
+        return concertRepository.avgPricePerYear();
+    }
+
+    public List<Object[]> getCapacityReport() {
+        return concertRepository.capacityReport();
+    }
 }

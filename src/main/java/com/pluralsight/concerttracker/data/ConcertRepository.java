@@ -29,4 +29,25 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
 
     @Query("SELECT c FROM Concert c WHERE c.ticketPrice <= :maxPrice AND c.concertYear >= :minYear")
     List<Concert> findByMaxPriceAndMinYear(@Param("maxPrice") double maxPrice, @Param("minYear") int minYear);
+
+
+    // row[0] = venue name, row[1] = total revenue
+    @Query("SELECT c.venue.name, SUM(c.ticketPrice * c.ticketsSold) FROM Concert c GROUP BY c.venue.name")
+    List<Object[]> revenuePerVenue();
+
+    // row[0] = venue name, row[1] = concert count
+    @Query("SELECT c.venue.name, COUNT(c) FROM Concert c GROUP BY c.venue.name ORDER BY COUNT(c) DESC")
+    List<Object[]> concertCountPerVenue();
+
+    // row[0] = artist name, row[1] = concert count
+    @Query("SELECT c.artist.name, COUNT(c) FROM Concert c GROUP BY c.artist.name ORDER BY COUNT(c) DESC")
+    List<Object[]> concertCountPerArtist();
+
+    // row[0] = year, row[1] = average price
+    @Query("SELECT c.concertYear, AVG(c.ticketPrice) FROM Concert c GROUP BY c.concertYear ORDER BY c.concertYear")
+    List<Object[]> avgPricePerYear();
+
+    // row[0] = artist name, row[1] = venue name, row[2] = tickets sold, row[3] = capacity
+    @Query("SELECT c.artist.name, c.venue.name, c.ticketsSold, c.venue.capacity FROM Concert c ORDER BY c.venue.name")
+    List<Object[]> capacityReport();
 }
